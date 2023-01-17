@@ -45,18 +45,6 @@ interface ReturnType {
   winningCard: string;
 }
 
-const scoreObject = {
-  StraightFlush: ["iX", "(i+1)X", "(i+2)X", "(i+3)X", "(i+4)X"],
-  FourOfAKind: ["iC", "iD", "iH", "iS"],
-  FullHouse: ["iX", "iX", "iX", "yX", "yX"],
-  Flush: ["iX", "xX", "yX", "zX", "wX"],
-  Straight: ["iX", "(i+1)Y", "(i+2)Z", "(i+3)W", "(i+4)B"],
-  ThreeOfAKind: ["iX", "iY", "iZ"],
-  TwoPairs: ["iX", "yX", "iY", "yY"],
-  Pair: ["iX", "yX"],
-  HighCard: ["iX"],
-};
-
 //------------------------------------------------checks top card in hand
 function isHighCard(hand: Card[]): Card {
   let handOfCards: number[] = [];
@@ -68,8 +56,8 @@ function isHighCard(hand: Card[]): Card {
   let topCard: Card = hand[indexOfLargestCard];
   return topCard;
 }
-//------------------------------------------------checks how many pairs in hand
-function numOfPairs(hand: Card[]): 0 | 1 | 2 {
+//------------------------------------------------checks how many of same in hand
+function numOfSame(hand: Card[]): 0 | object {
   const pairObj: any = {};
   for (let card of hand) {
     if (pairObj[card.cardValue] === undefined) {
@@ -78,10 +66,87 @@ function numOfPairs(hand: Card[]): 0 | 1 | 2 {
       pairObj[card.cardValue]++;
     }
   }
-  if (pairObj.keys.length === 0) {
+  if (!Object.values(pairObj.includes(2 | 3 | 4))) {
     return 0;
   } else {
-    return pairObj.keys.length;
+    return pairObj;
+  }
+}
+//------------------------------------------------checks four of a kind in hand
+function isFourOfAKind(handObj: object): boolean {
+  if (Object.keys(handObj)[Object.values(handObj).indexOf(4)] === undefined) {
+    return false;
+  } else {
+    return true;
+  }
+}
+//------------------------------------------------checks three of a kind in hand
+function isThreeOfAKind(handObj: object): boolean {
+  if (Object.keys(handObj)[Object.values(handObj).indexOf(3)] === undefined) {
+    return false;
+  } else {
+    return true;
+  }
+}
+//------------------------------------------------checks number of pairs in hand
+function numPairs(handObj: object): number {
+  let count: number = 0;
+  if (Object.keys(handObj)[Object.values(handObj).indexOf(2)] === undefined) {
+    return 0;
+  } else {
+    for (let num of Object.values(handObj)) {
+      if (num === 2) count++;
+    }
+  }
+  return count;
+}
+//------------------------------------------------checks if cards are a full house
+function isFullHouse(hand: Card[]): boolean {
+  const handObj = numOfSame(hand);
+  if (handObj === 0) return false;
+  if (isThreeOfAKind(handObj) && numPairs(handObj) === 1) {
+    return true;
+  } else {
+    return false;
+  }
+}
+//------------------------------------------------checks if cards are in a row
+function isInARow(hand: Card[]): boolean {
+  let handOfCards: number[] = [];
+  for (let card of hand) {
+    handOfCards.push(card.cardValue);
+  }
+  let sortedHand = handOfCards.sort();
+  let previousCard = sortedHand[0];
+  for (let i = 1; i < sortedHand.length; i++) {
+    if (previousCard + 1 === sortedHand[i]) {
+      previousCard = sortedHand[i];
+    } else {
+      return false;
+    }
+  }
+  return true;
+}
+//------------------------------------------------checks if cards are one suite
+function isOneSuite(hand: Card[]): boolean {
+  let handOfCards: number = 0;
+  const suiteValue = { C: 0.1, D: 1, S: 4, H: 16 };
+  const trueCases: number[] = [0.4, 4, 16, 64];
+  for (let card of hand) {
+    handOfCards = +suiteValue[card.cardKind];
+  }
+  if (trueCases.includes(handOfCards)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+//------------------------------------------------checks if cards are straight flush
+function isStraightFlush(hand: Card[]): boolean {
+  if (isInARow(hand) && isOneSuite(hand)) {
+    return true;
+  } else {
+    return false;
   }
 }
 
